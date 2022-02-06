@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Axios from 'axios';
-import {Button, TextField} from '@material-ui/core';
+import {Button, TextField, Avatar} from '@material-ui/core';
 import './App.css';
 
 const App = () =>{
@@ -10,7 +10,7 @@ const App = () =>{
   const [matchData, setMatchData] = useState({});
   const [infoData, setInfoData] = useState({});
   const [rankData, setRankData] = useState({});
-  const [masteryData, setMasteryData] = useState({});
+  //const [masteryData, setMasteryData] = useState({});
   const riotKey = 'RGAPI-2baee207-ae9b-45be-af85-c07dec9606de';
 
 
@@ -33,7 +33,7 @@ const summonerId = playerData.id;
 
 
 
-const champMastery = (event) => {
+/*const champMastery = (event) => {
   var apiMasteryCallString = "/lol/champion-mastery/v4/champion-masteries/by-summoner/" + summonerId + "?api_key=" + riotKey;
   Axios.get(apiMasteryCallString).then(function(response) {
     setMasteryData(response.data);
@@ -41,7 +41,7 @@ const champMastery = (event) => {
     console.log(error);
   })
 }
-
+*/
 
 
 
@@ -76,28 +76,10 @@ const matchHistory = (event) =>{
 
 
 
-const matchid = matchData.count;
-
-/*Promise.all([matchData]).then(function(values){
-  console.log(values);
-})*/
-
-/*let requests = matchid.map(id => {
-  return new Promise((resolve, reject) => {
-     request({
-     uri: 'https://europe.api.riotgames.com/lol/match/v5/matches/'+ values + '/?api_key=' + riotKey,
-     method: 'GET',
-     })
-     console.log(requests);
-  })
-})*/
-
-
-
 
 
 const matchInfo = (event) =>{
-  var APIInfoCallString = "https://europe.api.riotgames.com/lol/match/v5/matches/EUN1_3053391928/?api_key=" + riotKey;
+  var APIInfoCallString = "https://europe.api.riotgames.com/lol/match/v5/matches/"  + matchData[0] +  "/?api_key=" + riotKey;
     Axios.get(APIInfoCallString).then(function (response){
       setInfoData(response.data);
     }).catch(function (error){
@@ -112,25 +94,26 @@ const matchInfo = (event) =>{
 console.log(playerData);
 console.log(rankData);
 console.log(infoData);
-console.log(champMastery);
 
   /*  const listMatches = () => {
   matchData.forEach(function(matchid){console.log(matchid)})
 }
 */
+
+
   return(
     <div className="app">
       <div className="container">
         <h1>Summoner Searcher</h1>
-        <input id="inpp" type="text" onChange={e => setSearchText(e.target.value)}></input>
-        <Button style={{color:'black', backgroundColor:'white'}} id="butt" onClick={e  => { searchForPlayer(e);  matchHistory(e); matchInfo(e); leagueRank(e); champMastery(e);}}>Search</Button>
+        <TextField  id="inpp" type="text" onChange={e => setSearchText(e.target.value)}></TextField>
+        <Button variant='text' color='success' size='large'    id="butt" onClick={e  => { searchForPlayer(e);  matchHistory(e); matchInfo(e); leagueRank(e);}}>Search</Button>
       </div>
 
       {JSON.stringify(playerData) !== '{}' ? 
       <div className="playerData">
          <p>{playerData.name}</p>
-         <img alt={playerData.profileIconId} width="100" height="100" src={"http://ddragon.leagueoflegends.com/cdn/12.3.1/img/profileicon/" + playerData.profileIconId + ".png"}></img>
-         <p>Summoner Level: {playerData.summonerLevel}</p>
+         <Avatar sx={{ width: 100, height: 100}} alt={playerData.profileIconId} width="100" height="100" src={"http://ddragon.leagueoflegends.com/cdn/12.3.1/img/profileicon/" + playerData.profileIconId + ".png"}></Avatar>
+         <p>{playerData.summonerLevel}</p>
          </div>   
           : 
           <div><p>No player data</p></div>
@@ -138,14 +121,7 @@ console.log(champMastery);
 
     {JSON.stringify(matchData) !== '{}' ? 
     <div>
-      <p>Matches  {/*listMatches() */ }  </p> 
-
-      <ol>
-
-      {/*matchData.map(matchid   => {
-      return<li>{matchid}</li>
-      })*/}
-    </ol>
+      <p> {/*listMatches() */ }  </p> 
     </div>
       :
       <div><p>No match data</p></div>
@@ -153,9 +129,26 @@ console.log(champMastery);
 
   
   {JSON.stringify(infoData) !== '{}' ?
-  <div>
-  <p>Game Duration: {infoData.info.gameDuration / 60} minutes</p>
-  <p>K/D/A: {infoData.info.participants[7].kills}/{infoData.info.participants[7].deaths}/{infoData.info.participants[7].assists} </p>
+  <div className="participants"> 
+  {infoData.info.participants.map(({participants, kills, deaths, assists , summonerName}) => 
+  
+  (<p key={participants}><table align="center">
+    <tr>
+      <th style={{}}>Name</th>
+      <th>Kills</th>
+      <th>Deaths</th>
+      <th>Assists</th>
+    </tr>
+    <tr>
+      <td>{summonerName}</td>
+      <td>{kills}</td>
+      <td>{deaths}</td>
+      <td>{assists}</td>
+    </tr>
+      </table></p>))}
+
+
+  
   </div>
     :
     <div><p>No info about matches</p></div>
@@ -172,10 +165,9 @@ console.log(champMastery);
 
 {JSON.stringify(rankData) !== '{}' ? 
       <div>
-         <p>Type: {rankData[0].queueType}</p>
-         <p>Tier: {rankData[0].tier}</p>
-         <p>Rank: {rankData[0].rank}</p>
-         <p>Winrate: {rankData[0].wins}/{rankData[0].losses}</p>
+         <p>Rank: {rankData[0].tier} {rankData[0].rank}</p>
+         <p>winrate {(rankData[0].wins / (rankData[0].wins + rankData[0].losses)) * 100}</p>
+         <p>number of solo q games: {rankData[0].wins + rankData[0].losses}</p>
          </div>   
           : 
           <div><p>No rank data</p></div>
@@ -183,15 +175,14 @@ console.log(champMastery);
 
 
 
-    {JSON.stringify(masteryData) !== '{}' ? 
+    {/*JSON.stringify(masteryData) !== '{}' ? 
     <div>
-       <p>{masteryData[0].championId}         {masteryData[0].chamionLevel}</p>
+       <p>{masteryData[masteryData[0]].championId}         {masteryData[0].chamionLevel}</p>
        <p>{masteryData[0].championPoints}</p>
        </div>   
         : 
         <div><p>No mastery data</p></div>
-  }
-
+  */}
 
 
 
@@ -203,12 +194,6 @@ console.log(champMastery);
 
 
 export default App;
-
-
-
-
-
-//  input.addEventListener("keyup", function(event){ if(event.keyCode === 13) event.preventDefault(); document.getElementById('butt').click();})}
 
 
 
