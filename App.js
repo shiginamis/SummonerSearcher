@@ -10,25 +10,62 @@ const App = () =>{
   const [matchData, setMatchData] = useState({});
   const [infoData, setInfoData] = useState({});
   const [rankData, setRankData] = useState({});
+  const [matchIds, setMatchIds] = useState([]);
   //const [masteryData, setMasteryData] = useState({});
-  const riotKey = 'RGAPI-2baee207-ae9b-45be-af85-c07dec9606de';
+  const riotKey = 'RGAPI-7d8253f6-d341-4856-9ef5-f6877aac468a';
 
 
-  const searchForPlayer = (event) =>{
-    // set up the correct API Call
-    var APICallString = "https://eun1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + searchText + "?api_key=" + riotKey;
-  Axios.get(APICallString).then(function (response){
-    // Success
-    setPlayerData(response.data);
-  }).catch(function (error){
-    // Error
-    console.log(error);
+const handleSubmitPlayer = (event) => {
+
+var APICallString = "https://eun1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + searchText + "?api_key=" + riotKey;
+Axios.get(APICallString).then(function (response){
+  setPlayerData(response.data);
+}).catch(function (error){
+  console.log(error);
+})
+
+
+
+
+  var apiRankCallString = "https://eun1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + playerData.id + "?api_key=" + riotKey;
+Axios.get(apiRankCallString).then(function(response){
+  setRankData(response.data);
+}).catch(function(error){
+  console.log(error);
+})
+
+
+
+var APIMatchCallString = "https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/" + playerData.puuid + "/ids?api_key=" + riotKey;
+Axios.get(APIMatchCallString).then(function (response){
+  setMatchData(response.data);
+})
+.catch(function (error){
+  console.log(error);
+})
+
+matchData.forEach((value, i) => {
+  var APIInfoCallString = "https://europe.api.riotgames.com/lol/match/v5/matches/" + value + "/?api_key=" + riotKey;
+  Axios.get(APIInfoCallString).then((response) => {
+    console.log(response.data);
+    setMatchIds(response.data);
+    setInfoData(response.data);
   })
+})
+
+
+/*infoData.info.participants.forEach((val, i) => {
+  console.log(val)
+
+  infoData.info.participants.map(({participants, kills, deaths, assists , summonerName}) => {
+    console.log(summonerName)
+  })
+
+});*/
+
 
 }
 
-const puuid = playerData.puuid;
-const summonerId = playerData.id;
 
 
 
@@ -44,56 +81,9 @@ const summonerId = playerData.id;
 */
 
 
-
-
-
-
-const leagueRank = (event) => {
-var apiRankCallString = "https://eun1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerId + "?api_key=" + riotKey;
-Axios.get(apiRankCallString).then(function(response){
-  setRankData(response.data);
-}).catch(function(error){
-  console.log(error);
-})
-
-}
-
-
-
-
-
-
-const matchHistory = (event) =>{
-  var APIMatchCallString = "https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/" + puuid + "/ids?api_key=" + riotKey;
-  Axios.get(APIMatchCallString).then(function (response){
-    setMatchData(response.data);
-  })
-  .catch(function (error){
-    // Error
-    console.log(error);
-  })
-}
-
-
-
-
-
-const matchInfo = (event) =>{
-  var APIInfoCallString = "https://europe.api.riotgames.com/lol/match/v5/matches/"  + matchData[0] +  "/?api_key=" + riotKey;
-    Axios.get(APIInfoCallString).then(function (response){
-      setInfoData(response.data);
-    }).catch(function (error){
-      console.log(error)
-    })
-
-}
-
-
-
-
-console.log(playerData);
+/*console.log(playerData);
 console.log(rankData);
-console.log(infoData);
+console.log(infoData);*/
 
   /*  const listMatches = () => {
   matchData.forEach(function(matchid){console.log(matchid)})
@@ -101,12 +91,14 @@ console.log(infoData);
 */
 
 
+console.log(matchIds);
+
   return(
     <div className="app">
       <div className="container">
         <h1>Summoner Searcher</h1>
         <TextField  id="inpp" type="text" onChange={e => setSearchText(e.target.value)}></TextField>
-        <Button variant='text' color='success' size='large'    id="butt" onClick={e  => { searchForPlayer(e);  matchHistory(e); matchInfo(e); leagueRank(e);}}>Search</Button>
+        <Button variant='text' color='default' size='large'    id="butt" onClick={e  => {handleSubmitPlayer(e);}}>Search</Button>
       </div>
 
       {JSON.stringify(playerData) !== '{}' ? 
@@ -132,7 +124,7 @@ console.log(infoData);
   <div className="participants"> 
   {infoData.info.participants.map(({participants, kills, deaths, assists , summonerName}) => 
   
-  (<p key={participants}><table align="center">
+  (<table key={participants} align="center">
     <tr>
       <th style={{}}>Name</th>
       <th>Kills</th>
@@ -145,8 +137,7 @@ console.log(infoData);
       <td>{deaths}</td>
       <td>{assists}</td>
     </tr>
-      </table></p>))}
-
+</table>))}
 
   
   </div>
@@ -166,7 +157,7 @@ console.log(infoData);
 {JSON.stringify(rankData) !== '{}' ? 
       <div>
          <p>Rank: {rankData[0].tier} {rankData[0].rank}</p>
-         <p>winrate {(rankData[0].wins / (rankData[0].wins + rankData[0].losses)) * 100}</p>
+         <p>winrate: {parseInt((rankData[0].wins / (rankData[0].wins + rankData[0].losses)) * 100)}%</p>
          <p>number of solo q games: {rankData[0].wins + rankData[0].losses}</p>
          </div>   
           : 
