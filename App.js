@@ -3,6 +3,8 @@ import Axios from 'axios';
 import {Button, TextField, Avatar} from '@material-ui/core';
 import './App.css';
 
+
+
 const App = () =>{
 
   const [searchText, setSearchText] = useState("");
@@ -12,7 +14,7 @@ const App = () =>{
   const [rankData, setRankData] = useState({});
   const [matchIds, setMatchIds] = useState([]);
   //const [masteryData, setMasteryData] = useState({});
-  const riotKey = 'RGAPI-7d8253f6-d341-4856-9ef5-f6877aac468a';
+  const riotKey = require(".env");
 
 
 const handleSubmitPlayer = (event) => {
@@ -56,11 +58,9 @@ matchData.forEach((value, i) => {
 
 /*infoData.info.participants.forEach((val, i) => {
   console.log(val)
-
   infoData.info.participants.map(({participants, kills, deaths, assists , summonerName}) => {
     console.log(summonerName)
   })
-
 });*/
 
 
@@ -187,14 +187,3 @@ console.log(matchIds);
 export default App;
 
 
-
-/* 
- 
-      <ul>
-
-      {matchData.map(matchid   => {
-        return<li>{matchid[]}</li>
-      })}
-    
-    </ul> 
-      */
